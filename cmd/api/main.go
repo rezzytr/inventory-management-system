@@ -4,40 +4,52 @@ import (
 	"fmt"
 	"log"
 
-	// Import package repository dan model sesuai path module di go.mod
 	"inventory-management-system/internal/model"
 	"inventory-management-system/internal/repository"
+	"inventory-management-system/internal/service"
 )
 
 func main() {
 	fmt.Println("=== Inventory Management System API ===")
 
-	// 1. Inisialisasi layer repository
+	// 1. Init Repository
 	repo := repository.NewMemoryRepository()
 
-	// 2. Tambah produk baru
-	newProduct := model.Product{
+	// 2. Init Service (memasukkan Repository ke dalam Service)
+	productService := service.NewProductService(repo)
+
+	// 3. Skenario 1: Coba tambah produk yang VALID
+	validProduct := model.Product{
 		SKU:   "MOU-002",
 		Name:  "Wireless Mouse",
-		Stock: 25,
-		Price: 250000,
+		Stock: 15,
+		Price: 150000,
 	}
 
-	err := repo.Create(&newProduct)
+	err := productService.CreateProduct(validProduct)
 	if err != nil {
-		log.Fatalf("Gagal menambahkan produk: %v", err)
+		log.Printf("❌ Gagal membuat produk valid: %v\n", err)
+	} else {
+		fmt.Println("✅ Produk berhasil ditambahkan!")
 	}
-	fmt.Println("✅ Berhasil menambahkan produk baru!")
 
-	// 3. Ambil dan tampilkan semua data produk
-	products, err := repo.GetAll()
+	// 4. Skenario 2: Coba tambah produk INVALID (Harga 0) -> Harusnya Kena Validasi!
+	invalidProduct := model.Product{
+		SKU:   "KEY-001",
+		Name:  "Mechanical Keyboard",
+		Stock: 5,
+		Price: 0, // Invalid!
+	}
+
+	err = productService.CreateProduct(invalidProduct)
 	if err != nil {
-		log.Fatalf("Gagal mengambil data produk: %v", err)
+		fmt.Printf("⚠️ Validasi Bekerja! Error: %v\n", err)
 	}
 
-	fmt.Println("\n--- Daftar Inventaris ---")
+	// 5. Tampilkan semua produk yang ada saat ini
+	products, _ := productService.GetAllProducts()
+	fmt.Println("\n--- Daftar Produk Saat Ini ---")
 	for _, p := range products {
-		fmt.Printf("[%d] SKU: %s | Name: %s | Stock: %d | Price: Rp%.0f\n",
-			p.ID, p.SKU, p.Name, p.Stock, p.Price)
+		fmt.Printf("[%d] SKU: %s | %s | Stok: %d | Rp%.0f\n", p.ID, p.SKU, p.Name, p.Stock, p.Price)
 	}
 }
