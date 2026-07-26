@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-slate-800 p-4 text-white shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">📦 Inventory System</h1>
+            <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">Clean Architecture Go</span>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm border flex justify-between items-center">
+                <div>
+                    <p class="text-gray-500 text-sm font-semibold">Total Produk</p>
+                    <h2 id="stat-total" class="text-3xl font-bold text-gray-800">0</h2>
+                </div>
+                <div class="p-3 bg-blue-100 text-blue-600 rounded-full">📊</div>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow-sm border flex justify-between items-center">
+                <div>
+                    <p class="text-gray-500 text-sm font-semibold">Stok Tipis (≤ 5)</p>
+                    <h2 id="stat-low-stock" class="text-3xl font-bold text-amber-600">0</h2>
+                </div>
+                <div class="p-3 bg-amber-100 text-amber-600 rounded-full">⚠️</div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Daftar Inventaris</h2>
+            <button onclick="openModal('create-modal')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+                + Tambah Produk
+            </button>
+        </div>
+
+        <div class="bg-white shadow-sm rounded-lg overflow-hidden border">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr class="bg-slate-50 text-gray-600 text-left text-xs font-bold uppercase border-b">
+                        <th class="px-5 py-3">SKU</th>
+                        <th class="px-5 py-3">Nama Produk</th>
+                        <th class="px-5 py-3">Stok</th>
+                        <th class="px-5 py-3">Harga</th>
+                        <th class="px-5 py-3 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body" class="divide-y text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Produk -->
+    <div id="create-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center p-4">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah Produk Baru</h3>
+            <form id="create-form" onsubmit="handleCreateProduct(event)">
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">SKU</label>
+                    <input type="text" id="create-sku" required class="w-full border rounded p-2 text-sm">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Produk</label>
+                    <input type="text" id="create-name" required class="w-full border rounded p-2 text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Stok Awal</label>
+                        <input type="number" id="create-stock" min="0" required class="w-full border rounded p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Harga (Rp)</label>
+                        <input type="number" id="create-price" min="0" required class="w-full border rounded p-2 text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('create-modal')" class="px-4 py-2 bg-gray-200 rounded text-sm font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-semibold">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adjust Stok -->
+    <div id="stock-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center p-4">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-1">Adjust Stok</h3>
+            <p id="stock-sku-display" class="text-xs text-gray-500 mb-4"></p>
+            <form id="stock-form" onsubmit="handleAdjustStock(event)">
+                <input type="hidden" id="stock-sku">
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Jumlah Perubahan (+ / -)</label>
+                    <input type="number" id="stock-amount" required placeholder="Contoh: 10 atau -5" class="w-full border rounded p-2 text-sm">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Alasan Transaksi</label>
+                    <input type="text" id="stock-reason" placeholder="Contoh: Restock Supplier" class="w-full border rounded p-2 text-sm">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('stock-modal')" class="px-4 py-2 bg-gray-200 rounded text-sm font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded text-sm font-semibold">Update Stok</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8080";
+        document.addEventListener("DOMContentLoaded", fetchProducts);
+
+        async function fetchProducts() {
+            try {
+                const res = await fetch(`${API_URL}/products`);
+                const products = await res.json();
+                renderTable(products || []);
+                updateStats(products || []);
+            } catch (err) { console.error("Gagal mengambil data produk:", err); }
+        }
+
+        function renderTable(products) {
+            const tbody = document.getElementById("product-table-body");
+            tbody.innerHTML = "";
+            if (products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-4 text-center text-gray-400">Belum ada data produk.</td></tr>`;
+                return;
+            }
+            products.forEach(p => {
+                const isLow = p.stock <= 5;
+                const stockBadge = isLow 
+                    ? `<span class="bg-red-100 text-red-700 font-bold px-2 py-1 rounded text-xs">${p.stock} (Low)</span>`
+                    : `<span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded text-xs">${p.stock}</span>`;
+
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="px-5 py-3 font-mono font-bold text-gray-700">${p.sku}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">${p.name}</td>
+                    <td class="px-5 py-3">${stockBadge}</td>
+                    <td class="px-5 py-3 font-semibold text-gray-700">Rp ${p.price.toLocaleString('id-ID')}</td>
+                    <td class="px-5 py-3 text-center space-x-2">
+                        <button onclick="openStockModal('${p.sku}')" class="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded text-xs">Adjust Stok</button>
+                        <button onclick="deleteProduct('${p.sku}')" class="bg-rose-500 hover:bg-rose-600 text-white px-2 py-1 rounded text-xs">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateStats(products) {
+            document.getElementById("stat-total").innerText = products.length;
+            document.getElementById("stat-low-stock").innerText = products.filter(p => p.stock <= 5).length;
+        }
+
+        async function handleCreateProduct(e) {
+            e.preventDefault();
+            const body = {
+                sku: document.getElementById("create-sku").value,
+                name: document.getElementById("create-name").value,
+                stock: parseInt(document.getElementById("create-stock").value),
+                price: parseInt(document.getElementById("create-price").value)
+            };
+            const res = await fetch(`${API_URL}/products`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) { closeModal("create-modal"); document.getElementById("create-form").reset(); fetchProducts(); }
+            else { alert("Gagal menyimpan: " + await res.text()); }
+        }
+
+        function openStockModal(sku) {
+            document.getElementById("stock-sku").value = sku;
+            document.getElementById("stock-sku-display").innerText = "SKU Target: " + sku;
+            openModal("stock-modal");
+        }
+
+        async function handleAdjustStock(e) {
+            e.preventDefault();
+            const sku = document.getElementById("stock-sku").value;
+            const body = {
+                amount: parseInt(document.getElementById("stock-amount").value),
+                reason: document.getElementById("stock-reason").value
+            };
+            const res = await fetch(`${API_URL}/products/${sku}/stock`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) { closeModal("stock-modal"); document.getElementById("stock-form").reset(); fetchProducts(); }
+            else { alert("Gagal update stok: " + await res.text()); }
+        }
+
+        async function deleteProduct(sku) {
+            if (!confirm(`Hapus produk ${sku}?`)) return;
+            const res = await fetch(`${API_URL}/products/${sku}`, { method: "DELETE" });
+            if (res.ok) fetchProducts();
+            else alert("Gagal menghapus: " + await res.text());
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+        function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+    </script>
+</body>
+</html>

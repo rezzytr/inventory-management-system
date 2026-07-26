@@ -1,43 +1,69 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
+	"net/http"
+	"os"
+	"path/filepath"
 
-	// Import package repository dan model sesuai path module di go.mod
-	"inventory-management-system/internal/model"
+	"inventory-management-system/internal/handler"
+	"inventory-management-system/internal/middleware"
 	"inventory-management-system/internal/repository"
+	"inventory-management-system/internal/service"
+
+	_ "github.com/glebarez/go-sqlite"
 )
 
 func main() {
-	fmt.Println("=== Inventory Management System API ===")
-
-	// 1. Inisialisasi layer repository
-	repo := repository.NewMemoryRepository()
-
-	// 2. Tambah produk baru
-	newProduct := model.Product{
-		SKU:   "MOU-002",
-		Name:  "Wireless Mouse",
-		Stock: 25,
-		Price: 250000,
-	}
-
-	err := repo.Create(&newProduct)
+	db, err := sql.Open("sqlite", "inventory.db")
 	if err != nil {
-		log.Fatalf("Gagal menambahkan produk: %v", err)
+		log.Fatalf("Gagal membuka database: %v", err)
 	}
-	fmt.Println("✅ Berhasil menambahkan produk baru!")
+	defer db.Close()
 
-	// 3. Ambil dan tampilkan semua data produk
-	products, err := repo.GetAll()
+	repo, err := repository.NewSQLiteRepository(db)
 	if err != nil {
-		log.Fatalf("Gagal mengambil data produk: %v", err)
+		log.Fatalf("Gagal inisialisasi repository: %v", err)
 	}
 
-	fmt.Println("\n--- Daftar Inventaris ---")
-	for _, p := range products {
-		fmt.Printf("[%d] SKU: %s | Name: %s | Stock: %d | Price: Rp%.0f\n",
-			p.ID, p.SKU, p.Name, p.Stock, p.Price)
+	svc := service.NewProductService(repo)
+	productHandler := handler.NewProductHandler(svc)
+
+	mux := http.NewServeMux()
+
+	// INV-12: Serve Web Dashboard UI (Root /)
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		// Cari lokasi file web/index.html relatif dari Current Working Directory
+		indexPath := filepath.Join(".", "web", "index.html")
+
+		// Cek apakah file benar-benar ada di disk
+		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
+			dir, _ := os.Getwd()
+			log.Printf("[ERROR] File index.html tidak ditemukan di path: %s (Working Dir: %s)", indexPath, dir)
+			http.Error(w, "File Web Dashboard (web/index.html) tidak ditemukan. Pastikan folder 'web' berada di root project.", http.StatusNotFound)
+			return
+		}
+
+		http.ServeFile(w, r, indexPath)
+	})
+
+	// API Endpoints
+	mux.HandleFunc("GET /products", productHandler.GetAllProducts)
+	mux.HandleFunc("POST /products", productHandler.CreateProduct)
+	mux.HandleFunc("PUT /products/{sku}", productHandler.UpdateProduct)
+	mux.HandleFunc("DELETE /products/{sku}", productHandler.DeleteProduct)
+
+	// INV-07, INV-08, & INV-09 Endpoints
+	mux.HandleFunc("POST /products/{sku}/stock", productHandler.AdjustStock)
+	mux.HandleFunc("GET /products/{sku}/logs", productHandler.GetStockLogs)
+	mux.HandleFunc("GET /products/low-stock", productHandler.GetLowStockProducts)
+
+	// INV-10 Middleware Chain
+	handlerWithMiddleware := middleware.Recoverer(middleware.Logger(mux))
+
+	log.Println("Server berjalan di http://localhost:8080")
+	if err := http.ListenAndServe(":8080", handlerWithMiddleware); err != nil {
+		log.Fatal(err)
 	}
 }

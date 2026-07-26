@@ -2,25 +2,26 @@ package model
 
 import "time"
 
-// Product mendefinisikan struktur data barang dalam sistem inventaris.
-// Di dunia kerja, struct ini merepresentasikan tabel di database.
 type Product struct {
-	// ID unik untuk setiap produk (Primary Key)
-	ID int `json:"id"`
-
-	// SKU (Stock Keeping Unit) adalah kode unik barang di gudang (misal: "PROD-001")
-	SKU string `json:"sku"`
-
-	// Nama barang
-	Name string `json:"name"`
-
-	// Jumlah stok yang tersedia di gudang
-	Stock int `json:"stock"`
-
-	// Harga barang per unit
-	Price float64 `json:"price"`
-
-	// Waktu kapan data produk ini dibuat dan terakhir diubah
+	ID        int64     `json:"id"`
+	SKU       string    `json:"sku"`
+	Name      string    `json:"name"`
+	Stock     int       `json:"stock"`
+	Price     int64     `json:"price"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type StockAdjustment struct {
+	Amount int    `json:"amount"` // Nilai positif (+10) atau negatif (-5)
+	Reason string `json:"reason"` // Contoh: "Restock Suplier", "Penjualan Toko", "Barang Rusak"
+}
+
+type StockTransaction struct {
+	ID        int64     `json:"id"`
+	SKU       string    `json:"sku"`
+	Type      string    `json:"type"`   // "IN" atau "OUT"
+	Amount    int       `json:"amount"` // Selalu bernilai positif untuk jumlah transaksi
+	Reason    string    `json:"reason"`
+	CreatedAt time.Time `json:"created_at"`
 }

@@ -1,0 +1,12 @@
+# Database
+*.db
+*.db-journal
+
+# Go Binary & Build Artifacts
+main
+*.exe
+*.exe~
+*.out
+
+# Environment Configuration
+.env
