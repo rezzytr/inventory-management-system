@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inventory-app
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_DRIVER=sqlite
+      - DB_SOURCE=/app/data/inventory.db
+    volumes:
+      - sqlite_data:/app/data
+
+volumes:
+  sqlite_data:

@@ -4,6 +4,7 @@ go 1.26.5
 
 require (
 	github.com/glebarez/go-sqlite v1.22.0
+	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.12.3
 )
 
