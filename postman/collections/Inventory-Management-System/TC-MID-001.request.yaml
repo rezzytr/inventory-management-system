@@ -1,0 +1,8 @@
+$kind: http-request
+name: TC-MID-001
+url: http://localhost:8080/products
+method: GET
+body:
+  type: json
+  content: "{ bad json syntax }"
+order: 4503583454214932

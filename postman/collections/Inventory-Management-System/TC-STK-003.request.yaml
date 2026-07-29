@@ -1,0 +1,14 @@
+$kind: http-request
+name: TC-STK-003
+url: http://localhost:8080/products/MOUSE-001/stock
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"action\": \"reduce\",\r
+
+    \  \"amount\": -236\r
+
+    }"
+order: 4498990902979783

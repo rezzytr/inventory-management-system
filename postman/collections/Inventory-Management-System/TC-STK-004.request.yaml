@@ -1,0 +1,5 @@
+$kind: http-request
+name: TC-STK-004
+url: http://localhost:8080/products/low-stock
+method: GET
+order: 4501800897140975

@@ -1,0 +1,18 @@
+$kind: http-request
+name: TC-PROD-006
+url: http://localhost:8080/products
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"sku\": \"MOUSE-001\",\r
+
+    \  \"name\": \"Wireless Mouse\",\r
+
+    \  \"price\": 250000,\r
+
+    \  \"stock\": 20\r
+
+    }"
+order: 4211798136339577

@@ -1,0 +1,8 @@
+$kind: http-request
+url: http://localhost:8080/products
+method: POST
+body:
+  type: json
+  content: '{"sku": "LAPTOP-001", "name": "Gaming Laptop", "price": 15000000,
+    "stock": 10}'
+order: 802082170273711

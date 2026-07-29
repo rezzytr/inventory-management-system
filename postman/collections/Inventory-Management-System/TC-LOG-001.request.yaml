@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://localhost:8080/products/MOUSE-001/logs
+method: GET
+order: 4503395624344383

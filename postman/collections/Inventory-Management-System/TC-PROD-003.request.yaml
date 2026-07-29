@@ -1,0 +1,5 @@
+$kind: http-request
+name: TC-PROD-003
+url: http://localhost:8080/products
+method: GET
+order: 4157484564934621

@@ -1,0 +1,23 @@
+$kind: http-request
+description: ""
+url: POST http://localhost:8080/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"sku\": \"LAPTOP-001\",\r
+
+    \  \"name\": \"Office Laptop\",\r
+
+    \  \"price\": 8000000,\r
+
+    \  \"stock\": 5\r
+
+    }"
+settings:
+  strictSSL: false
+  followRedirects: true
+  disableCookies: false
+  maxResponseSize: 52428800
+order: 3233673708419395
